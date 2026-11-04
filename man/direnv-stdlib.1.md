@@ -381,6 +381,28 @@ Prepends the specified vim script (or .vimrc.local by default) to the
 This variable is understood by the direnv/direnv.vim extension. When found,
 it will source it after opening files in the directory.
 
+### `complete_add <executable> [<argument> ...]`
+
+Registers a Bash command completion while the environment is active:
+
+    complete_add ./make.sh autocompletions
+
+This registers `./make.sh` as the completion lookup name and runs the absolute
+path to `make.sh` with `autocompletions` when Bash requests completion, using
+Bash's `complete -C` interface. Relative executable paths resolve against the
+working directory at the call, normally the directory containing `.envrc`.
+Arguments are literal arguments, not shell expressions. Quote paths and
+arguments containing spaces or special characters.
+
+Leaving the environment removes the completion or restores its previous
+definition. Reloading or switching environments updates registrations
+automatically. The last declaration for the same lookup name wins.
+
+Requires the existing Bash hook (`eval "$(direnv hook bash)"`); no additional
+configuration is needed. Zsh and Fish do not apply these registrations.
+Declarations are carried in the exported `DIRENV_BASH_COMPLETIONS` variable;
+saved original definitions remain private to the current Bash shell.
+
 ### `watch_file <path> [<path> ...]`
 
 Adds each file to direnv's watch-list. If the file changes direnv will reload the environment on the next prompt.

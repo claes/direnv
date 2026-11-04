@@ -120,6 +120,13 @@ func exportCommand(currentEnv Env, args []string, config *Config) (err error) {
 		return fmt.Errorf("ToShell() failed: %w", diffErr)
 	}
 	logDebug("env diff %s", diffString)
+	if shell == Bash && currentEnv[DIRENV_BASH_COMPLETIONS] != newEnv[DIRENV_BASH_COMPLETIONS] {
+		completionCode, completionErr := bashCompletionExport(newEnv[DIRENV_BASH_COMPLETIONS])
+		if completionErr != nil {
+			return completionErr
+		}
+		diffString += completionCode
+	}
 	fmt.Print(diffString)
 
 	return
