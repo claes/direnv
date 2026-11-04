@@ -170,6 +170,22 @@ join_args() {
   printf '%q ' "$@"
 }
 
+# Usage: complete_add <executable> [<argument> ...]
+#
+# Registers a Bash command completion while this environment is active.
+# Example: complete_add ./make.sh autocompletions
+#
+complete_add() {
+  local REPLY declaration
+  if [[ $# -eq 0 || -z $1 ]]; then
+    log_error "complete_add requires an executable"
+    return 1
+  fi
+  realpath.absolute "$1"
+  declaration=$("$direnv" complete-add "$1" "$REPLY" "${@:2}") || return
+  export DIRENV_BASH_COMPLETIONS=$declaration
+}
+
 # Usage: expand_path <rel_path> [<relative_to>]
 #
 # Outputs the absolute path of <rel_path> relative to <relative_to> or the

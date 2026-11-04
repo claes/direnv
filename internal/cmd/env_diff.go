@@ -16,6 +16,10 @@ var IgnoredKeys = map[string]bool{
 	// should only be available inside of the .envrc or .env
 	"DIRENV_IN_ENVRC": true,
 
+	// Completion backups are private state of the interactive Bash shell.
+	"_direnv_complete_names": true,
+	"_direnv_complete_saved": true,
+
 	"COMP_WORDBREAKS": true, // Avoids segfaults in bash
 	"PS1":             true, // PS1 should not be exported, fixes problem in bash
 

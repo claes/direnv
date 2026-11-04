@@ -393,6 +393,32 @@ Prepends the specified vim script (or .vimrc.local by default) to the
 This variable is understood by the direnv/direnv.vim extension. When found,
 it will source it after opening files in the directory.
 
+.SS \fBcomplete_add <executable> [<argument> ...]\fR
+Registers a Bash command completion while the environment is active:
+
+.EX
+complete_add ./make.sh autocompletions
+.EE
+
+.PP
+This registers \fB\&./make.sh\fR as the completion lookup name and runs the absolute
+path to \fBmake.sh\fR with \fBautocompletions\fR when Bash requests completion, using
+Bash's \fBcomplete -C\fR interface. Relative executable paths resolve against the
+working directory at the call, normally the directory containing \fB\&.envrc\fR\&.
+Arguments are literal arguments, not shell expressions. Quote paths and
+arguments containing spaces or special characters.
+
+.PP
+Leaving the environment removes the completion or restores its previous
+definition. Reloading or switching environments updates registrations
+automatically. The last declaration for the same lookup name wins.
+
+.PP
+Requires the existing Bash hook (\fBeval "$(direnv hook bash)"\fR); no additional
+configuration is needed. Zsh and Fish do not apply these registrations.
+Declarations are carried in the exported \fBDIRENV_BASH_COMPLETIONS\fR variable;
+saved original definitions remain private to the current Bash shell.
+
 .SS \fBwatch_file <path> [<path> ...]\fR
 Adds each file to direnv's watch-list. If the file changes direnv will reload the environment on the next prompt.
 
