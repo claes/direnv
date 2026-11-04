@@ -170,19 +170,19 @@ join_args() {
   printf '%q ' "$@"
 }
 
-# Usage: complete_add <executable> [<argument> ...]
+# Usage: bash_complete_cmd <command-name> <completion-provider> [<argument> ...]
 #
 # Registers a Bash command completion while this environment is active.
-# Example: complete_add ./make.sh autocompletions
+# Example: bash_complete_cmd ./make.sh ./make.sh autocompletions
 #
-complete_add() {
+bash_complete_cmd() {
   local REPLY declaration
-  if [[ $# -eq 0 || -z $1 ]]; then
-    log_error "complete_add requires an executable"
+  if [[ $# -lt 2 || -z $1 || -z $2 ]]; then
+    log_error "bash_complete_cmd requires a command name and completion provider"
     return 1
   fi
-  realpath.absolute "$1"
-  declaration=$("$direnv" complete-add "$1" "$REPLY" "${@:2}") || return
+  realpath.absolute "$2"
+  declaration=$("$direnv" bash-complete-cmd "$1" "$REPLY" "${@:3}") || return
   export DIRENV_BASH_COMPLETIONS=$declaration
 }
 

@@ -381,27 +381,36 @@ Prepends the specified vim script (or .vimrc.local by default) to the
 This variable is understood by the direnv/direnv.vim extension. When found,
 it will source it after opening files in the directory.
 
-### `complete_add <executable> [<argument> ...]`
+### `bash_complete_cmd <command-name> <completion-provider> [<argument> ...]`
 
 Registers a Bash command completion while the environment is active:
 
-    complete_add ./make.sh autocompletions
+    bash_complete_cmd ./make.sh ./make.sh autocompletions
 
-This registers `./make.sh` as the completion lookup name and runs the absolute
-path to `make.sh` with `autocompletions` when Bash requests completion, using
-Bash's `complete -C` interface. Relative executable paths resolve against the
-working directory at the call, normally the directory containing `.envrc`.
-Arguments are literal arguments, not shell expressions. Quote paths and
-arguments containing spaces or special characters.
+The command name is the completion lookup key and is preserved exactly. The
+provider is a separate executable; it need not be the command being completed:
+
+    bash_complete_cmd mytool ./tools/completer autocompletions
+
+Relative provider paths resolve against the working directory at the call,
+normally the directory containing `.envrc`. The provider path becomes absolute;
+arguments are passed literally, not interpreted as shell expressions. Quote
+paths and arguments containing spaces or special characters.
+
+Bash invokes the provider using its `complete -C` protocol: declared arguments
+are followed by the command being completed, the current word, and the previous
+word. The provider prints completion candidates, one per line. It need not be
+written in Bash and should not output shell code or completion definitions.
 
 Leaving the environment removes the completion or restores its previous
 definition. Reloading or switching environments updates registrations
 automatically. The last declaration for the same lookup name wins.
 
 Requires the existing Bash hook (`eval "$(direnv hook bash)"`); no additional
-configuration is needed. Zsh and Fish do not apply these registrations.
-Declarations are carried in the exported `DIRENV_BASH_COMPLETIONS` variable;
-saved original definitions remain private to the current Bash shell.
+configuration is needed. Under Zsh and Fish the declaration succeeds without
+changing completions or invoking the provider. Declarations are carried in the
+exported `DIRENV_BASH_COMPLETIONS` variable; saved original definitions remain
+private to the current Bash shell.
 
 ### `watch_file <path> [<path> ...]`
 

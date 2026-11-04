@@ -34,15 +34,15 @@ func loadBashCompletions(value string) ([]bashCompletion, error) {
 	return registrations, nil
 }
 
-// CmdCompleteAdd transports data only; no completion program runs during loading.
-var CmdCompleteAdd = &Cmd{
-	Name:    "complete-add",
+// CmdBashCompleteCmd transports data only; no completion program runs during loading.
+var CmdBashCompleteCmd = &Cmd{
+	Name:    "bash-complete-cmd",
 	Desc:    "Adds a Bash completion declaration",
 	Args:    []string{"NAME", "EXECUTABLE", "ARGS..."},
 	Private: true,
 	Action: actionSimple(func(env Env, args []string) error {
 		if len(args) < 3 {
-			return fmt.Errorf("complete-add requires a name and absolute executable path")
+			return fmt.Errorf("bash-complete-cmd requires a name and absolute executable path")
 		}
 		registrations, err := loadBashCompletions(env[DIRENV_BASH_COMPLETIONS])
 		if err != nil {

@@ -83,3 +83,53 @@ compgen -C "$2" -- ''
 		t.Fatalf("completion invocation: %v\n%s", err, output)
 	}
 }
+
+func TestBashCompletionsOtherShells(t *testing.T) {
+	// Other shells carry the declaration as data and retain their own completions.
+	for _, shell := range []string{"zsh", "fish"} {
+		t.Run(shell, func(t *testing.T) {
+			path, err := exec.LookPath(shell)
+			if err != nil {
+				t.Skipf("%s is not installed", shell)
+			}
+			marker := filepath.Join(t.TempDir(), "provider-ran")
+			provider := filepath.Join(t.TempDir(), "provider")
+			bash, err := exec.LookPath("bash")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(provider, []byte("#!"+bash+"\nprintf ran > "+BashEscape(marker)+"\n"), 0700); err != nil {
+				t.Fatal(err)
+			}
+			value := gzenv.Marshal([]bashCompletion{{Name: "mytool", Args: []string{provider}}})
+			before := Env{}
+			after := Env{DIRENV_BASH_COMPLETIONS: value}
+			enter, err := before.Diff(after).ToShell(DetectShell(shell))
+			if err != nil {
+				t.Fatal(err)
+			}
+			leave, err := after.Diff(before).ToShell(DetectShell(shell))
+			if err != nil {
+				t.Fatal(err)
+			}
+			var script string
+			args := []string{"--no-config", "-c"}
+			if shell == "zsh" {
+				args = []string{"-f", "-c"}
+				script = "set -eu\nautoload -Uz compinit; compinit -D -i\ncompdef _files mytool\n" + enter +
+					"\n[[ -n $DIRENV_BASH_COMPLETIONS && $_comps[mytool] == _files ]]\n" + leave +
+					"\n[[ -z ${DIRENV_BASH_COMPLETIONS-} && $_comps[mytool] == _files ]]\n"
+			} else {
+				script = "complete -c mytool -a original\nset before (complete)\n" + enter +
+					"\nset -q DIRENV_BASH_COMPLETIONS; or exit 1\nset after (complete)\ntest \"$before\" = \"$after\"; or exit 1\n" + leave +
+					"\nset -q DIRENV_BASH_COMPLETIONS; and exit 1\nset after (complete)\ntest \"$before\" = \"$after\"; or exit 1\n"
+			}
+			if output, err := exec.Command(path, append(args, script)...).CombinedOutput(); err != nil {
+				t.Fatalf("%v\n%s", err, output)
+			}
+			if _, err := os.Stat(marker); !os.IsNotExist(err) {
+				t.Fatalf("provider ran or marker check failed: %v", err)
+			}
+		})
+	}
+}
