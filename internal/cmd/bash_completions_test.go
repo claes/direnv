@@ -72,9 +72,10 @@ func TestBashCompletionCommand(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Read the installed -C argument and run it through Bash's completion API.
-	script := code + `
+	script := "set -eu\n" + code + `
 eval "set -- $(builtin complete -p ./make.sh)"
-while [[ $1 != -C ]]; do shift; done
+while (( $# )) && [[ $1 != -C ]]; do shift; done
+[[ $# -ge 2 ]]
 compgen -C "$2" -- ''
 `
 	output, err := exec.Command("bash", "-c", script).CombinedOutput()

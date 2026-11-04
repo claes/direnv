@@ -3,6 +3,7 @@
   lib,
   stdenv,
   bash,
+  bashInteractive,
   __includeMan ? true,
 }:
 buildGoApplication {
@@ -43,6 +44,8 @@ buildGoApplication {
   '';
 
   checkPhase = ''
+    # The completion tests require builtins omitted from minimal Bash.
+    export PATH="${bashInteractive}/bin:$PATH"
     make test-go
   '';
 
